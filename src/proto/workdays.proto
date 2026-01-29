@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package plannify;
+
+message Workday {
+    string date = 1;
+    string start_time = 2;
+    optional string end_time = 3;
+    string rest_time = 4;
+    bool overnight = 5;
+}
+
+message GenerateMonthlyWorkdayReportRequest {
+    string driver_firstname = 1;
+    string driver_lastname = 2;
+    uint32 month = 3;
+    uint32 year = 4;
+    repeated Workday workdays = 5;
+}
+
+message GenerateMonthlyWorkdayReportResponse {
+    bytes pdf_content = 1;
+}
+
+service WorkdayService {
+  rpc GenerateMonthlyWorkdayReport (GenerateMonthlyWorkdayReportRequest) returns (GenerateMonthlyWorkdayReportResponse) {}
+}
