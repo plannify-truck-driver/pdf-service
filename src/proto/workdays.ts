@@ -2,10 +2,11 @@
 // versions:
 //   protoc-gen-ts_proto  v2.11.1
 //   protoc               v6.33.4
-// source: proto/workdays.proto
+// source: src/proto/workdays.proto
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import type { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
 
 export const protobufPackage = "plannify";
 
@@ -369,32 +370,28 @@ export const GenerateMonthlyWorkdayReportResponse: MessageFns<GenerateMonthlyWor
   },
 };
 
-export interface WorkdayService {
-  GenerateMonthlyWorkdayReport(
-    request: GenerateMonthlyWorkdayReportRequest,
-  ): Promise<GenerateMonthlyWorkdayReportResponse>;
-}
+export type WorkdayServiceService = typeof WorkdayServiceService;
+export const WorkdayServiceService = {
+  generateMonthlyWorkdayReport: {
+    path: "/plannify.WorkdayService/GenerateMonthlyWorkdayReport",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: GenerateMonthlyWorkdayReportRequest): Buffer =>
+      Buffer.from(GenerateMonthlyWorkdayReportRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GenerateMonthlyWorkdayReportRequest =>
+      GenerateMonthlyWorkdayReportRequest.decode(value),
+    responseSerialize: (value: GenerateMonthlyWorkdayReportResponse): Buffer =>
+      Buffer.from(GenerateMonthlyWorkdayReportResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GenerateMonthlyWorkdayReportResponse =>
+      GenerateMonthlyWorkdayReportResponse.decode(value),
+  },
+} as const;
 
-export const WorkdayServiceServiceName = "plannify.WorkdayService";
-export class WorkdayServiceClientImpl implements WorkdayService {
-  private readonly rpc: Rpc;
-  private readonly service: string;
-  constructor(rpc: Rpc, opts?: { service?: string }) {
-    this.service = opts?.service || WorkdayServiceServiceName;
-    this.rpc = rpc;
-    this.GenerateMonthlyWorkdayReport = this.GenerateMonthlyWorkdayReport.bind(this);
-  }
-  GenerateMonthlyWorkdayReport(
-    request: GenerateMonthlyWorkdayReportRequest,
-  ): Promise<GenerateMonthlyWorkdayReportResponse> {
-    const data = GenerateMonthlyWorkdayReportRequest.encode(request).finish();
-    const promise = this.rpc.request(this.service, "GenerateMonthlyWorkdayReport", data);
-    return promise.then((data) => GenerateMonthlyWorkdayReportResponse.decode(new BinaryReader(data)));
-  }
-}
-
-interface Rpc {
-  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
+export interface WorkdayServiceServer extends UntypedServiceImplementation {
+  generateMonthlyWorkdayReport: handleUnaryCall<
+    GenerateMonthlyWorkdayReportRequest,
+    GenerateMonthlyWorkdayReportResponse
+  >;
 }
 
 function bytesFromBase64(b64: string): Uint8Array {
