@@ -583,19 +583,11 @@ export class WorkdayService {
       },
     };
 
-    try {
-      console.log("Creating PDF...");
-      const pdf = pdfMakeInstance.createPdf(docDefinition);
-      console.log("PDF created.");
+    const pdf = pdfMakeInstance.createPdf(docDefinition);
 
-      // getBuffer() returns a Promise<Buffer> (pdfmake API)
-      const buffer = await pdf.getBuffer();
-      console.log("PDF buffer obtained, size:", buffer.length);
+    // getBuffer() returns a Promise<Buffer> (pdfmake API)
+    const buffer = await pdf.getBuffer();
 
-      return buffer;
-    } catch (error) {
-      console.error("Error creating PDF:", error);
-      throw error;
-    }
+    return buffer;
   }
 }

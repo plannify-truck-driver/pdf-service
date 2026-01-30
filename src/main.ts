@@ -3,6 +3,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { join } from "path";
 import { MicroserviceOptions, Transport } from "@nestjs/microservices";
+import { LoggingInterceptor } from "./logging.interceptor";
 
 const checkEnvVariables = () => {
   const requiredEnvVars = ["HOST", "PORT", "WEBSITE_URL"];
@@ -37,6 +38,8 @@ async function bootstrap() {
       },
     },
   );
+
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   await app.listen();
 }
