@@ -19,15 +19,213 @@ interface PdfMakeInstance {
   ) => { getBuffer: () => Promise<Buffer> };
 }
 
-/** Node passed to pdfmake table layout callbacks */
-// interface PdfMakeTableLayoutNode {
-//   table: { body: unknown[]; widths?: unknown[] };
-// }
+type LanguageMessages = {
+  documentTitle: string;
+  periodLabel: (monthName: string, year: number) => string;
+  months: string[];
+  headers: {
+    index: {
+      name: string;
+      margins: number[];
+    };
+    date: {
+      name: string;
+      margins: number[];
+    };
+    startTime: {
+      name: string;
+      margins: number[];
+    };
+    endTime: {
+      name: string;
+      margins: number[];
+    };
+    rest: {
+      name: string;
+      margins: number[];
+    };
+    overnight: {
+      name: string;
+      margins: number[];
+    };
+    workTime: {
+      name: string;
+      margins: number[];
+    };
+  };
+  noWorkdays: string;
+  overnightYes: string;
+  workTimeNotComputed: string;
+  totalLabel: string;
+  footerGeneratedOn: (date: string, time: string) => string;
+  footerPage: (current: number, total: number) => string;
+  dateFormat: (day: string, month: string, year: number) => string;
+};
+
+const MESSAGES: Record<Language, LanguageMessages> = {
+  [Language.ENGLISH]: {
+    documentTitle: "Monthly workday report",
+    periodLabel: (monthName, year) => `Period: ${monthName} ${year}`,
+    months: [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
+    headers: {
+      index: {
+        name: "#",
+        margins: [0, 9],
+      },
+      date: {
+        name: "Date",
+        margins: [0, 9],
+      },
+      startTime: {
+        name: "Start time",
+        margins: [0, 9],
+      },
+      endTime: {
+        name: "End time",
+        margins: [0, 9],
+      },
+      rest: {
+        name: "Break",
+        margins: [0, 9],
+      },
+      overnight: {
+        name: "Overnight",
+        margins: [0, 9],
+      },
+      workTime: {
+        name: "Worked time",
+        margins: [0, 9],
+      },
+    },
+    noWorkdays: "No workday was recorded for the selected period.",
+    overnightYes: "Yes",
+    workTimeNotComputed: "not computed",
+    totalLabel: "Total",
+    footerGeneratedOn: (date, time) => `Generated on ${date} at ${time}`,
+    footerPage: (current, total) => `Page ${current} of ${total}`,
+    dateFormat: (day, month, year) => `${month}/${day}/${year}`,
+  },
+  [Language.FRENCH]: {
+    documentTitle: "Relevé mensuel des journées",
+    periodLabel: (monthName, year) => `Période : ${monthName} ${year}`,
+    months: [
+      "Janvier",
+      "Février",
+      "Mars",
+      "Avril",
+      "Mai",
+      "Juin",
+      "Juillet",
+      "Août",
+      "Septembre",
+      "Octobre",
+      "Novembre",
+      "Décembre",
+    ],
+    headers: {
+      index: {
+        name: "#",
+        margins: [0, 9],
+      },
+      date: {
+        name: "Date",
+        margins: [0, 9],
+      },
+      startTime: {
+        name: "Heure de début",
+        margins: [0, 2],
+      },
+      endTime: {
+        name: "Heure de fin",
+        margins: [0, 9],
+      },
+      rest: {
+        name: "Coupure",
+        margins: [0, 9],
+      },
+      overnight: {
+        name: "Découchage",
+        margins: [0, 9],
+      },
+      workTime: {
+        name: "Temps travaillé",
+        margins: [0, 2],
+      },
+    },
+    noWorkdays:
+      "Aucune journée n'a été enregistrée pour la période sélectionnée.",
+    overnightYes: "Oui",
+    workTimeNotComputed: "non calculé",
+    totalLabel: "Total",
+    footerGeneratedOn: (date, time) => `Généré le ${date} à ${time}`,
+    footerPage: (current, total) => `Page ${current} sur ${total}`,
+    dateFormat: (day, month, year) => `${day}/${month}/${year}`,
+  },
+  [Language.UNRECOGNIZED]: {
+    documentTitle: "",
+    periodLabel: () => "",
+    months: [],
+    headers: {
+      index: {
+        name: "#",
+        margins: [],
+      },
+      date: {
+        name: "",
+        margins: [],
+      },
+      startTime: {
+        name: "",
+        margins: [],
+      },
+      endTime: {
+        name: "",
+        margins: [],
+      },
+      rest: {
+        name: "",
+        margins: [],
+      },
+      overnight: {
+        name: "",
+        margins: [],
+      },
+      workTime: {
+        name: "",
+        margins: [],
+      },
+    },
+    noWorkdays: "",
+    overnightYes: "",
+    workTimeNotComputed: "",
+    totalLabel: "",
+    footerGeneratedOn: () => "",
+    footerPage: () => "",
+    dateFormat: (day, month, year) => `${day}/${month}/${year}`,
+  },
+};
+
+function getMessages(lang: Language): LanguageMessages {
+  return MESSAGES[lang] ?? MESSAGES[Language.ENGLISH];
+}
 
 @Injectable()
 export class WorkdayService {
   /**
-   * Format a date to DD/MM/YYYY format
+   * Format a date with language-specific format
    */
   private formatDate(date: string | Date | number, language: Language): string {
     const d = new Date(date);
@@ -35,14 +233,8 @@ export class WorkdayService {
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
 
-    switch (language) {
-      case Language.ENGLISH:
-        return `${month}/${day}/${year}`;
-      case Language.FRENCH:
-        return `${day}/${month}/${year}`;
-      default:
-        throw new Error("Unrecognized language: " + String(language));
-    }
+    const tr = getMessages(language);
+    return tr.dateFormat(day, month, year);
   }
 
   /**
@@ -57,7 +249,7 @@ export class WorkdayService {
   }
 
   private calculateSeconds(date: string): number {
-    const dateParts = date.split(":").map((part) => parseInt(part, 10));
+    const dateParts = date.split(":").map((part) => Number.parseInt(part, 10));
     const dateObj = new Date();
     dateObj.setHours(dateParts[0], dateParts[1], dateParts[2] || 0, 0);
     return (
@@ -104,69 +296,10 @@ export class WorkdayService {
   async generateMonthlyWorkdayPdf(
     data: GenerateMonthlyWorkdayReportRequest,
   ): Promise<Buffer> {
-    let documentTitle: string;
-    switch (data.language) {
-      case Language.ENGLISH:
-        documentTitle = "Monthly workday report";
-        break;
-      case Language.FRENCH:
-        documentTitle = "Relevé des journées mensuel";
-        break;
-      case Language.UNRECOGNIZED:
-        throw new Error("Unrecognized language: " + data.language);
-    }
-
-    const months: Record<Language, string[]> = {
-      [Language.ENGLISH]: [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ],
-      [Language.FRENCH]: [
-        "Janvier",
-        "Février",
-        "Mars",
-        "Avril",
-        "Mai",
-        "Juin",
-        "Juillet",
-        "Août",
-        "Septembre",
-        "Octobre",
-        "Novembre",
-        "Décembre",
-      ],
-      [Language.UNRECOGNIZED]: [],
-    };
-
-    let periodText: string;
-    switch (data.language) {
-      case Language.ENGLISH:
-        periodText =
-          "Period: " +
-          months[Language.ENGLISH][data.month - 1] +
-          " " +
-          data.year;
-        break;
-      case Language.FRENCH:
-        periodText =
-          "Période : " +
-          months[Language.FRENCH][data.month - 1] +
-          " " +
-          data.year;
-        break;
-      default:
-        throw new Error("Unrecognized language: " + String(data.language));
-    }
+    const tr = getMessages(data.language);
+    const monthName = tr.months[data.month - 1];
+    const documentTitle = tr.documentTitle;
+    const periodText = tr.periodLabel(monthName, data.year);
 
     const pdfMakeInstance = pdfMake as PdfMakeInstance;
     const fonts = pdfFonts as Record<string, unknown> & {
@@ -236,46 +369,46 @@ export class WorkdayService {
             body: [
               [
                 {
-                  text: "#",
+                  text: tr.headers.index.name,
                   alignment: "center",
-                  margin: [0, 9],
+                  margin: tr.headers.index.margins,
                 },
                 {
-                  text: "Date",
+                  text: tr.headers.date.name,
                   alignment: "center",
-                  margin: [0, 9],
+                  margin: tr.headers.date.margins,
                 },
                 {
-                  text: "Heure de début",
+                  text: tr.headers.startTime.name,
                   alignment: "center",
-                  margin: [0, 2],
+                  margin: tr.headers.startTime.margins,
                 },
                 {
-                  text: "Heure de fin",
+                  text: tr.headers.endTime.name,
                   alignment: "center",
-                  margin: [0, 9],
+                  margin: tr.headers.endTime.margins,
                 },
                 {
-                  text: "Coupure",
+                  text: tr.headers.rest.name,
                   alignment: "center",
-                  margin: [0, 9],
+                  margin: tr.headers.rest.margins,
                 },
                 {
-                  text: "Découchage",
+                  text: tr.headers.overnight.name,
                   alignment: "center",
-                  margin: [0, 9],
+                  margin: tr.headers.overnight.margins,
                 },
                 {
-                  text: "Temps travaillé",
+                  text: tr.headers.workTime.name,
                   alignment: "center",
-                  margin: [0, 2],
+                  margin: tr.headers.workTime.margins,
                 },
               ],
               ...(data.workdays.length === 0
                 ? [
                     [
                       {
-                        text: "Aucune journée n'a été enregistrée pour la période sélectionnée.",
+                        text: tr.noWorkdays,
                         colSpan: 7,
                         alignment: "center",
                         margin: [0, 4],
@@ -294,6 +427,16 @@ export class WorkdayService {
                       workTimeSeconds && workTimeSeconds > 0
                         ? workTimeSeconds
                         : 0;
+
+                    let workTimeText: string;
+                    if (workTimeSeconds == null) {
+                      workTimeText = tr.workTimeNotComputed;
+                    } else if (workTimeSeconds > 0) {
+                      workTimeText =
+                        this.generateTimeFromSeconds(workTimeSeconds);
+                    } else {
+                      workTimeText = "";
+                    }
 
                     return [
                       {
@@ -342,7 +485,7 @@ export class WorkdayService {
                             : [false, false, false, false],
                       },
                       {
-                        text: workday.overnight ? "Oui" : "",
+                        text: workday.overnight ? tr.overnightYes : "",
                         alignment: "center",
                         margin: [0, 2],
                         border:
@@ -351,11 +494,7 @@ export class WorkdayService {
                             : [false, false, false, false],
                       },
                       {
-                        text: workTimeSeconds
-                          ? workTimeSeconds > 0
-                            ? this.generateTimeFromSeconds(workTimeSeconds)
-                            : ""
-                          : "non calculé",
+                        text: workTimeText,
                         alignment: "center",
                         border:
                           index == data.workdays.length - 1
@@ -374,7 +513,7 @@ export class WorkdayService {
               ],
               [
                 {
-                  text: "Total",
+                  text: tr.totalLabel,
                   alignment: "center",
                 },
                 {
@@ -417,39 +556,11 @@ export class WorkdayService {
       ],
       footer: (currentPage: number, pageCount: number) => {
         const now: Date = new Date();
-        now.getTimezoneOffset();
 
-        let footerDateText: string;
-        switch (data.language) {
-          case Language.ENGLISH:
-            footerDateText =
-              "Generated on " +
-              this.formatDate(now, data.language) +
-              " at " +
-              this.formatTime(now);
-            break;
-          case Language.FRENCH:
-            footerDateText =
-              "Généré le " +
-              this.formatDate(now, data.language) +
-              " à " +
-              this.formatTime(now);
-            break;
-          default:
-            throw new Error("Unrecognized language: " + String(data.language));
-        }
-
-        let pageText: string;
-        switch (data.language) {
-          case Language.ENGLISH:
-            pageText = "Page " + currentPage + " of " + pageCount;
-            break;
-          case Language.FRENCH:
-            pageText = "Page " + currentPage + " sur " + pageCount;
-            break;
-          default:
-            throw new Error("Unrecognized language: " + String(data.language));
-        }
+        const dateStr = this.formatDate(now, data.language);
+        const timeStr = this.formatTime(now);
+        const footerDateText = tr.footerGeneratedOn(dateStr, timeStr);
+        const pageText = tr.footerPage(currentPage, pageCount);
 
         return {
           columns: [
