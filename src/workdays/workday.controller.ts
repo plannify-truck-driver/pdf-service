@@ -1,7 +1,5 @@
 import { Controller } from "@nestjs/common";
 import { GrpcMethod } from "@nestjs/microservices";
-import { Metadata } from "@grpc/grpc-js";
-import type { ServerUnaryCall } from "@grpc/grpc-js";
 import {
   GenerateMonthlyWorkdayReportRequest,
   GenerateMonthlyWorkdayReportResponse,
@@ -14,11 +12,10 @@ export class WorkdayController {
 
   @GrpcMethod("WorkdayService", "GenerateMonthlyWorkdayReport")
   async generateMonthlyWorkdayReport(
-    _data: GenerateMonthlyWorkdayReportRequest,
-    _metadata: Metadata,
-    _call: ServerUnaryCall<any, any>,
+    data: GenerateMonthlyWorkdayReportRequest,
   ): Promise<GenerateMonthlyWorkdayReportResponse> {
-    const pdfContent = await this.workdayService.generateMonthlyWorkdayPdf();
+    const pdfContent =
+      await this.workdayService.generateMonthlyWorkdayPdf(data);
 
     return {
       pdfContent,

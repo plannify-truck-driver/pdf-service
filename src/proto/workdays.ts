@@ -10,6 +10,39 @@ import type { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-j
 
 export const protobufPackage = "plannify";
 
+export enum Language {
+  ENGLISH = 0,
+  FRENCH = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function languageFromJSON(object: any): Language {
+  switch (object) {
+    case 0:
+    case "ENGLISH":
+      return Language.ENGLISH;
+    case 1:
+    case "FRENCH":
+      return Language.FRENCH;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Language.UNRECOGNIZED;
+  }
+}
+
+export function languageToJSON(object: Language): string {
+  switch (object) {
+    case Language.ENGLISH:
+      return "ENGLISH";
+    case Language.FRENCH:
+      return "FRENCH";
+    case Language.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface Workday {
   date: string;
   startTime: string;
@@ -21,6 +54,7 @@ export interface Workday {
 export interface GenerateMonthlyWorkdayReportRequest {
   driverFirstname: string;
   driverLastname: string;
+  language: Language;
   month: number;
   year: number;
   workdays: Workday[];
@@ -167,7 +201,7 @@ export const Workday: MessageFns<Workday> = {
 };
 
 function createBaseGenerateMonthlyWorkdayReportRequest(): GenerateMonthlyWorkdayReportRequest {
-  return { driverFirstname: "", driverLastname: "", month: 0, year: 0, workdays: [] };
+  return { driverFirstname: "", driverLastname: "", language: 0, month: 0, year: 0, workdays: [] };
 }
 
 export const GenerateMonthlyWorkdayReportRequest: MessageFns<GenerateMonthlyWorkdayReportRequest> = {
@@ -178,14 +212,17 @@ export const GenerateMonthlyWorkdayReportRequest: MessageFns<GenerateMonthlyWork
     if (message.driverLastname !== "") {
       writer.uint32(18).string(message.driverLastname);
     }
+    if (message.language !== 0) {
+      writer.uint32(24).int32(message.language);
+    }
     if (message.month !== 0) {
-      writer.uint32(24).uint32(message.month);
+      writer.uint32(32).uint32(message.month);
     }
     if (message.year !== 0) {
-      writer.uint32(32).uint32(message.year);
+      writer.uint32(40).uint32(message.year);
     }
     for (const v of message.workdays) {
-      Workday.encode(v!, writer.uint32(42).fork()).join();
+      Workday.encode(v!, writer.uint32(50).fork()).join();
     }
     return writer;
   },
@@ -218,7 +255,7 @@ export const GenerateMonthlyWorkdayReportRequest: MessageFns<GenerateMonthlyWork
             break;
           }
 
-          message.month = reader.uint32();
+          message.language = reader.int32() as any;
           continue;
         }
         case 4: {
@@ -226,11 +263,19 @@ export const GenerateMonthlyWorkdayReportRequest: MessageFns<GenerateMonthlyWork
             break;
           }
 
-          message.year = reader.uint32();
+          message.month = reader.uint32();
           continue;
         }
         case 5: {
-          if (tag !== 42) {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.year = reader.uint32();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
             break;
           }
 
@@ -258,6 +303,7 @@ export const GenerateMonthlyWorkdayReportRequest: MessageFns<GenerateMonthlyWork
         : isSet(object.driver_lastname)
         ? globalThis.String(object.driver_lastname)
         : "",
+      language: isSet(object.language) ? languageFromJSON(object.language) : 0,
       month: isSet(object.month) ? globalThis.Number(object.month) : 0,
       year: isSet(object.year) ? globalThis.Number(object.year) : 0,
       workdays: globalThis.Array.isArray(object?.workdays) ? object.workdays.map((e: any) => Workday.fromJSON(e)) : [],
@@ -271,6 +317,9 @@ export const GenerateMonthlyWorkdayReportRequest: MessageFns<GenerateMonthlyWork
     }
     if (message.driverLastname !== "") {
       obj.driverLastname = message.driverLastname;
+    }
+    if (message.language !== 0) {
+      obj.language = languageToJSON(message.language);
     }
     if (message.month !== 0) {
       obj.month = Math.round(message.month);
@@ -295,6 +344,7 @@ export const GenerateMonthlyWorkdayReportRequest: MessageFns<GenerateMonthlyWork
     const message = createBaseGenerateMonthlyWorkdayReportRequest();
     message.driverFirstname = object.driverFirstname ?? "";
     message.driverLastname = object.driverLastname ?? "";
+    message.language = object.language ?? 0;
     message.month = object.month ?? 0;
     message.year = object.year ?? 0;
     message.workdays = object.workdays?.map((e) => Workday.fromPartial(e)) || [];

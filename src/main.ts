@@ -12,6 +12,12 @@ async function bootstrap() {
         package: "plannify",
         protoPath: join(__dirname, "proto/workdays.proto"),
         url: "0.0.0.0:8084",
+        loader: {
+          longs: String,
+          enums: Number,
+          defaults: true,
+          oneofs: true,
+        },
       },
     },
   );
