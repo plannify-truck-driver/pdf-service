@@ -1,4 +1,4 @@
-FROM node:25-alpine AS base
+FROM node:25.5-alpine3.23 AS base
 
 WORKDIR /nestjs-docker
 
@@ -19,7 +19,7 @@ COPY . .
 
 RUN pnpm run build
 
-FROM node:25-alpine
+FROM node:25.5-alpine3.23
 
 RUN apk update \
 	&& apk add --no-cache openssl\
