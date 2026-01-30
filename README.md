@@ -4,9 +4,15 @@ This service is responsible for generating a variety of PDF documents for the Pl
 
 It exists as a standalone microservice within the Plannify ecosystem because I didn't found any existing Rust libraries that could handle PDF generation as I wanted.
 
-## gRPC
+## Configuration
 
-### Generating code from proto files
+### Environment variables
+
+```bash
+cp .env.example .env
+```
+
+### Generating code from gRPC proto files
 
 ```bash
 pnpm run proto:generate

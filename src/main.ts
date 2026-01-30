@@ -1,9 +1,25 @@
+import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { join } from "path";
 import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 
+const checkEnvVariables = () => {
+  const requiredEnvVars = ["HOST", "PORT", "WEBSITE_URL"];
+  const missingVars = requiredEnvVars.filter(
+    (varName) => !process.env[varName],
+  );
+
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(", ")}`,
+    );
+  }
+};
+
 async function bootstrap() {
+  checkEnvVariables();
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
@@ -11,7 +27,7 @@ async function bootstrap() {
       options: {
         package: "plannify",
         protoPath: join(__dirname, "proto/workdays.proto"),
-        url: "0.0.0.0:8084",
+        url: `${process.env.HOST}:${process.env.PORT}`,
         loader: {
           longs: String,
           enums: Number,
