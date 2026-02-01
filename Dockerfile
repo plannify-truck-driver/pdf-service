@@ -17,6 +17,9 @@ RUN pnpm install
 
 COPY . .
 
+# Increase memory limit for build process
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 RUN pnpm run build
 
 FROM node:25.5-alpine3.23
