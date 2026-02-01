@@ -13,10 +13,6 @@ COPY package*.json ./
 RUN npm install -g pnpm
 RUN pnpm install
 
-# Used to fix tar vulnerability CVE-2026-24842 (not yet fixed in pnpm)
-RUN npm install -g tar@7.5.7 && \
-    pnpm install --ignore-scripts
-
 COPY . .
 
 ENV CHOKIDAR_USEPOLLING=true
