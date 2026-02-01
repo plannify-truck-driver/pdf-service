@@ -7,6 +7,9 @@ RUN apk update \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /var/cache/apk/*
 
+RUN npm install -g tar@7.5.7 && \
+    pnpm install --ignore-scripts
+
 # Copying all the files in our project
 COPY package*.json ./
 
