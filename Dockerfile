@@ -11,14 +11,13 @@ RUN apk update \
 COPY package*.json ./
 
 RUN npm install -g pnpm
-
-# Installing dependencies
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-# Increase memory limit for build process
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV CHOKIDAR_USEPOLLING=true
+ENV CHOKIDAR_INTERVAL=1000
+ENV CHOKIDAR_BINARY_INTERVAL=3000
 
 RUN pnpm run build
 
