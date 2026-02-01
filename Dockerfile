@@ -28,9 +28,15 @@ RUN apk update \
 
 WORKDIR /nestjs-docker
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 COPY --from=base /nestjs-docker/node_modules ./node_modules
 COPY --from=base /nestjs-docker/dist ./dist
 COPY --from=base /nestjs-docker/package.json ./package.json
+
+RUN chown -R appuser:appgroup /nestjs-docker
+
+USER appuser
 
 # Starting our application
 CMD ["node", "dist/main.js"]

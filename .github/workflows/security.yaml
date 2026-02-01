@@ -12,7 +12,7 @@ permissions:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -35,7 +35,7 @@ jobs:
 
   sast:
     name: SAST (Semgrep)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     container:
       image: semgrep/semgrep
     steps:
@@ -46,7 +46,7 @@ jobs:
 
   secrets:
     name: Secret Scanning (Gitleaks)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     container:
       image: ghcr.io/gitleaks/gitleaks:latest
     steps:

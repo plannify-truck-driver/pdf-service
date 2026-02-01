@@ -6,7 +6,7 @@ import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 import { LoggingInterceptor } from "./logging.interceptor";
 
 const checkEnvVariables = () => {
-  const requiredEnvVars = ["HOST", "PORT", "WEBSITE_URL"];
+  const requiredEnvVars = ["HOST", "PORT"];
   const missingVars = requiredEnvVars.filter(
     (varName) => !process.env[varName],
   );
@@ -21,6 +21,9 @@ const checkEnvVariables = () => {
 async function bootstrap() {
   checkEnvVariables();
 
+  const url: string = `${process.env.HOST}:${process.env.PORT}`;
+  console.log(`Starting gRPC server at ${url}`);
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
@@ -28,7 +31,7 @@ async function bootstrap() {
       options: {
         package: "plannify",
         protoPath: join(__dirname, "proto/workdays.proto"),
-        url: `${process.env.HOST}:${process.env.PORT}`,
+        url: url,
         loader: {
           longs: String,
           enums: Number,

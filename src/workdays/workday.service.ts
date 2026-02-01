@@ -114,7 +114,8 @@ const MESSAGES: Record<Language, LanguageMessages> = {
     overnightYes: "Yes",
     workTimeNotComputed: "not computed",
     totalLabel: "Total",
-    footerGeneratedOn: (date, time) => `Generated on ${date} at ${time}`,
+    footerGeneratedOn: (date, time) =>
+      `Generated on ${date} at ${time} (Paris time)`,
     footerPage: (current, total) => `Page ${current} of ${total}`,
     dateFormat: (day, month, year) => `${month}/${day}/${year}`,
   },
@@ -170,7 +171,8 @@ const MESSAGES: Record<Language, LanguageMessages> = {
     overnightYes: "Oui",
     workTimeNotComputed: "non calculé",
     totalLabel: "Total",
-    footerGeneratedOn: (date, time) => `Généré le ${date} à ${time}`,
+    footerGeneratedOn: (date, time) =>
+      `Généré le ${date} à ${time} (heure de Paris)`,
     footerPage: (current, total) => `Page ${current} sur ${total}`,
     dateFormat: (day, month, year) => `${day}/${month}/${year}`,
   },
@@ -225,27 +227,66 @@ function getMessages(lang: Language): LanguageMessages {
 @Injectable()
 export class WorkdayService {
   /**
-   * Format a date with language-specific format
+   * Extract date components in a specific timezone
    */
-  private formatDate(date: string | Date | number, language: Language): string {
+  private getDateComponentsInTimezone(
+    date: string | Date | number,
+    timeZone: string,
+  ): {
+    day: string;
+    month: string;
+    year: string;
+    hours: string;
+    minutes: string;
+    seconds: string;
+  } {
     const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone,
+      hour12: false,
+    });
 
-    const tr = getMessages(language);
-    return tr.dateFormat(day, month, year);
+    const parts = formatter.formatToParts(d);
+    const partMap: Record<string, string> = {};
+    parts.forEach((part) => {
+      partMap[part.type] = part.value;
+    });
+
+    return {
+      day: partMap.day,
+      month: partMap.month,
+      year: partMap.year,
+      hours: partMap.hour,
+      minutes: partMap.minute,
+      seconds: partMap.second,
+    };
   }
 
   /**
-   * Format a date to HH:mm:ss format
+   * Format a date with language-specific format (using Paris timezone)
+   */
+  private formatDate(date: string | Date | number, language: Language): string {
+    const components = this.getDateComponentsInTimezone(date, "Europe/Paris");
+    const tr = getMessages(language);
+    return tr.dateFormat(
+      components.day,
+      components.month,
+      Number(components.year),
+    );
+  }
+
+  /**
+   * Format a date to HH:mm:ss format (using Paris timezone)
    */
   private formatTime(date: string | Date | number): string {
-    const d = new Date(date);
-    const hours = String(d.getHours()).padStart(2, "0");
-    const minutes = String(d.getMinutes()).padStart(2, "0");
-    const seconds = String(d.getSeconds()).padStart(2, "0");
-    return `${hours}:${minutes}:${seconds}`;
+    const components = this.getDateComponentsInTimezone(date, "Europe/Paris");
+    return `${components.hours}:${components.minutes}:${components.seconds}`;
   }
 
   private calculateSeconds(date: string): number {
@@ -571,10 +612,6 @@ export class WorkdayService {
             }, // Left informations
             {
               text: pageText,
-              alignment: "center",
-            },
-            {
-              text: process.env.WEBSITE_URL,
               alignment: "right",
               margin: [0, 0, 20, 0],
             }, // Right informations
