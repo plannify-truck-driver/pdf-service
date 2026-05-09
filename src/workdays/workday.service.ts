@@ -588,7 +588,7 @@ export class WorkdayService {
           },
           layout: {
             fillColor: (rowIndex: number) => {
-              if (rowIndex != 0 && rowIndex < data.workdays.length)
+              if (rowIndex != 0 && rowIndex - 1 < data.workdays.length)
                 return rowIndex % 2 === 1 ? null : "#e5ebf2"; // Gray for even rows, white (or transparent) for odd rows
               else return null;
             },

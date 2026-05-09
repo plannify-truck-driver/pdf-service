@@ -17,3 +17,9 @@ cp .env.example .env
 ```bash
 pnpm run proto:generate
 ```
+
+### Running the service
+
+```bash
+pnpm run start
+```
