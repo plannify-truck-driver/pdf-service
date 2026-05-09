@@ -59,6 +59,9 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@nestjs/core", "protobufjs", "unrs-resolver"]
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",
