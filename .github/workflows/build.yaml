@@ -8,6 +8,10 @@ on:
 env:
   REGISTRY: ghcr.io
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-and-push:
     runs-on: ${{ matrix.runner.name }}
