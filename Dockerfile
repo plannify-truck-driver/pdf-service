@@ -10,7 +10,7 @@ RUN apk update \
 # Copying all the files in our project
 COPY package.json pnpm-lock.yaml ./
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.33.2
 RUN pnpm install --frozen-lockfile
 
 COPY . .
