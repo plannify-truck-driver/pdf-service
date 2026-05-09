@@ -8,10 +8,10 @@ RUN apk update \
 	&& rm -rf /var/cache/apk/*
 
 # Copying all the files in our project
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 
 RUN npm install -g pnpm
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
